@@ -2,7 +2,6 @@ from time import time
 import hashlib
 
 
-
 class Blockchain:
     def __init__(self):
         self.chain = []
@@ -22,7 +21,7 @@ class Blockchain:
             'timestamp': time(),
             'transactions': self.current_transactions,
             'proof': proof,
-            'previous_hash': previous_hash or self.hash(self.last_block),
+            'previous_hash': self.hash(self.last_block) if previous_hash is None else previous_hash
         }
 
         self.current_transactions = []
