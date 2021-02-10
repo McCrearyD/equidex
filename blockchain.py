@@ -106,3 +106,65 @@ class Blockchain:
 
         parsed_url = urlparse(address)
         self.nodes.add(parsed_url.netloc)
+
+    def valid_chain(self, chain: list) -> bool:
+        """determine if a given blockchain is valid
+
+        chain (list): a blockchain
+
+        return (bool): True if valid, else False
+        """
+
+        last_block = chain[0]
+        current_index = 1
+
+        while current_index < len(chain):
+            block = chain[current_index]
+            print(f'{last_block}')
+            print(f'{block}')
+            print('\n---------\n')
+            
+            # check the hash of the block is correct
+            if block['previous_hash'] != self.hash(last_block):
+                return False
+
+            # check proof of work is correct
+            if not self.valid_proof(last_block['proof'], block['proof']):
+                return False
+
+            last_block = block
+            current_index += 1
+
+        return True
+
+    def resolve_conflicts(self) -> bool:
+        """this is the consensus algorithm, it resolves conflicts
+        by replacing the chain with the longest one in the network
+
+        return (bool): True if our chain was replaced, else False
+        """
+
+        neighbors = self.nodes
+        new_chain = None
+
+        # look for chains longer than current
+        max_length = len(self.chain)
+
+        # grab & verify chains from other nodes in network
+        for node in neighbors:
+            response = requests.get(f'http://{node}/chain')
+
+            if response.status_code == 200:
+                data = response.json()
+                length = data['length']
+                chain = data['chain']
+
+                # check if length is longer & chain is valid
+                if length > max_length and self.valid_chain(chain):
+                    max_length = length
+                    new_chain = chain
+
+        if new_chain:
+            self.chain = new_chain
+            return True
+        return False
