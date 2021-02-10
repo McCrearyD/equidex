@@ -63,3 +63,32 @@ class Blockchain:
         # dict should be ordered, to remove inconsistencies
         block_string = json.dumps(block, sort_keys=True).encode()
         return hashlib.sha256(block_string).hexdigest()
+
+    def proof_of_work(self, last_proof):
+        """proof of work algorithm:
+        - Find a number p' such that hash(pp') contains leading 4 zeroes, where p is the previous p'
+        - p is the previous proof, and p' is the new proof
+
+        last_proof (int)
+
+        return (int)
+        """
+
+        proof = 0
+        while self.valid_proof(last_proof, proof) is False:
+                proof += 1
+        return proof
+
+    @staticmethod
+    def valid_proof(last_proof, proof):
+        """Validates the Proof: Does hash(last_proof, proof) contain 6969 at the end?
+
+        last_proof (int): previous proof
+        proof (int): current proof
+
+        return (bool): True if correct, else False
+        """
+
+        guess = f'{last_proof}{proof}'.encode()
+        guess_hash = hashlib.sha256(guess).hexdigest()
+        return guess_hash[:4] == "6969"
